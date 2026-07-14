@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The 6-Step System Design Framework</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4f0e7; --paper-2:#efe9dc;
+    --ink:#161514; --rule:#111;
+    --teal:#1f97ae; --teal-soft:#5bc0d0;
+    --coral:#e0514c; --amber:#c98a2b; --muted:#726c60; --line:#d8d0be;
+    --code-bg:#191f26; --code-fg:#e7e3d8;
+    --disp:"Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);background-image:linear-gradient(var(--line) 1px, transparent 1px);background-size:100% 34px;color:var(--ink);font-family:var(--mono);min-height:100vh;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:840px;margin:0 auto;padding:26px 18px 60px;}
+
+  .kicker{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);font-weight:700;}
+  h1{font-family:var(--disp);font-weight:700;font-size:clamp(24px,5.6vw,40px);line-height:.98;letter-spacing:-.01em;margin:4px 0 8px;}
+  .sub{font-size:13px;color:var(--muted);line-height:1.55;max-width:66ch;}
+  .rule{height:6px;background:var(--rule);border-radius:2px;margin:12px 0 14px;}
+
+  .legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:11.5px;color:var(--muted);margin:0 0 16px;align-items:center;}
+  .legend b{color:var(--ink);}
+  .dot{display:inline-flex;align-items:center;gap:6px;}
+  .pip{width:11px;height:11px;border-radius:50%;display:inline-block;border:2px solid;}
+  .pip.skip{background:var(--coral);border-color:var(--coral);}
+  .pip.build{background:transparent;border-color:var(--teal);}
+  .pip.polish{background:transparent;border-color:var(--muted);}
+
+  .filters{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
+  .chip{font-size:11.5px;font-weight:600;letter-spacing:.02em;padding:6px 11px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);border-radius:20px;cursor:pointer;transition:.12s;}
+  .chip:hover{background:var(--paper-2);}
+  .chip.active{background:var(--ink);color:var(--paper);}
+
+  .stage{perspective:1600px;margin-bottom:16px;}
+  .card{position:relative;width:100%;min-height:530px;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.2,.7,.2,1);cursor:pointer;}
+  .card.flipped{transform:rotateY(180deg);}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#fbf8f1;border:2.5px solid var(--ink);border-radius:14px;box-shadow:7px 8px 0 rgba(17,17,17,.9);padding:24px 24px 20px;display:flex;flex-direction:column;overflow:hidden;}
+  .toprow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .eyebrow{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--teal);}
+  .tier{font-family:var(--disp);font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:20px;white-space:nowrap;}
+  .tier.skip{background:var(--coral);color:#fff;}
+  .tier.build{background:transparent;color:var(--teal);border:1.5px solid var(--teal);}
+  .tier.polish{background:transparent;color:var(--muted);border:1.5px solid var(--muted);}
+
+  .front{align-items:stretch;text-align:center;}
+  .front .center{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;}
+  .stepnum{font-family:var(--disp);font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+  .term{font-family:var(--disp);font-weight:700;letter-spacing:-.01em;line-height:1.04;font-size:clamp(24px,5.6vw,40px);margin-top:6px;}
+  .hook{font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.5;max-width:42ch;font-style:italic;}
+  .underbar{height:5px;width:min(360px,72%);background:var(--rule);border-radius:2px;margin:18px auto 0;}
+  .flip-hint{margin-top:16px;font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px;}
+  .flip-hint b{color:var(--coral);font-weight:700;}
+  .arrow{color:var(--coral);font-family:var(--disp);font-weight:700;}
+
+  .back{transform:rotateY(180deg);}
+  .backscroll{overflow-y:auto;flex:1;display:flex;flex-direction:column;padding-right:3px;}
+  .backscroll::-webkit-scrollbar{width:7px;}
+  .backscroll::-webkit-scrollbar-thumb{background:#cfc7b4;border-radius:4px;}
+  .bterm{font-family:var(--disp);font-weight:700;font-size:clamp(17px,3.6vw,22px);margin:3px 0 2px;line-height:1.08;}
+  .bmeta{font-size:10.5px;color:var(--muted);margin-bottom:8px;}
+  .thinrule{height:3px;background:var(--rule);border-radius:2px;margin:0 0 10px;}
+
+  .sectionlabel{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:0 0 5px;}
+  .approach{font-size:12.5px;line-height:1.52;color:#242019;margin:0 0 11px;}
+  .approach strong{color:var(--teal);font-weight:700;}
+  .approach code{background:var(--paper-2);border-radius:4px;padding:0 4px;font-size:11px;}
+
+  pre{margin:0 0 11px;background:var(--code-bg);color:var(--code-fg);border-radius:9px;padding:11px 12px;font-family:var(--mono);font-size:11px;line-height:1.55;overflow-x:auto;white-space:pre;border:1px solid #2b333d;}
+  pre::-webkit-scrollbar{height:8px;}
+  pre::-webkit-scrollbar-thumb{background:#39424d;border-radius:4px;}
+
+  .mistakebox{border-left:4px solid var(--coral);background:#fbeeec;border-radius:0 8px 8px 0;padding:9px 12px;margin:0 0 11px;}
+  .mistakebox .mlabel{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--coral);font-weight:700;display:block;margin-bottom:3px;}
+  .mistakebox .mtext{font-size:12px;line-height:1.45;color:#3a2320;}
+
+  .whybox{margin:0 0 4px;}
+  .whylabel{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--amber);font-weight:700;margin-bottom:6px;}
+  .whylist{display:flex;flex-direction:column;gap:5px;}
+  .whyitem{font-size:11.5px;line-height:1.4;color:#4a3714;background:#fbf3e6;border-left:3px solid var(--amber);border-radius:0 6px 6px 0;padding:6px 9px;}
+
+  .cx{margin-top:auto;padding-top:9px;font-size:10.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px;letter-spacing:.02em;border-top:1px dashed var(--line);}
+
+  .controls{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;}
+  .navbtn{font-family:var(--disp);font-weight:700;font-size:14px;padding:11px 16px;border:2.5px solid var(--ink);background:#fbf8f1;color:var(--ink);border-radius:11px;cursor:pointer;transition:.1s;box-shadow:3px 4px 0 rgba(17,17,17,.85);}
+  .navbtn:hover{transform:translate(-1px,-1px);box-shadow:4px 5px 0 rgba(17,17,17,.85);}
+  .navbtn:active{transform:translate(2px,3px);box-shadow:1px 1px 0 rgba(17,17,17,.85);}
+  .flipbtn{background:var(--coral);color:#fff;}
+  .counter{font-family:var(--disp);font-weight:700;font-size:15px;text-align:center;min-width:70px;}
+  .counter small{display:block;font-family:var(--mono);font-weight:500;font-size:9.5px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-top:2px;line-height:1.3;}
+  .util{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
+  .util .navbtn{font-size:12px;padding:8px 13px;box-shadow:2px 3px 0 rgba(17,17,17,.85);}
+  .foot{margin-top:26px;font-size:11px;color:var(--muted);text-align:center;line-height:1.7;}
+  .kbd{font-family:var(--mono);border:1px solid var(--muted);border-radius:5px;padding:1px 6px;font-size:10.5px;}
+  @media (max-width:520px){.face{padding:18px 16px;}.navbtn{padding:10px 12px;}body{background-size:100% 30px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Order of operations for the whiteboard &#x00B7; not just the vocabulary</div>
+    <h1>The 6-Step Framework</h1>
+    <p class="sub">Most candidates fail system design not on knowledge but on <strong>sequence</strong> — they draw architecture boxes in the first 30 seconds and get stopped cold. This deck drills the order: two full steps happen before you touch the marker, and "draw the stack" is deliberately step four of six, not step one.</p>
+    <div class="rule"></div>
+    <div class="legend">
+      <span class="dot"><span class="pip skip"></span><b>Most Skipped</b> — where candidates lose points before drawing anything</span>
+      <span class="dot"><span class="pip build"></span><b>The Whiteboard</b> — architecture itself</span>
+      <span class="dot"><span class="pip polish"></span><b>Refine</b> — what separates senior from mid-level answers</span>
+    </div>
+  </header>
+
+  <div class="filters" id="filters"></div>
+
+  <div class="stage">
+    <div class="card" id="card" onclick="flip()">
+      <div class="face front">
+        <div class="toprow"><span class="eyebrow" id="f-track"></span><span class="tier" id="f-tier"></span></div>
+        <div class="center">
+          <div class="stepnum" id="f-num"></div>
+          <div class="term" id="f-name"></div>
+          <div class="hook" id="f-hook"></div>
+          <div class="underbar"></div>
+          <div class="flip-hint"><span class="arrow">&#x21BB;</span> flip for the move, example &amp; mistake it prevents</div>
+        </div>
+      </div>
+      <div class="face back">
+        <div class="backscroll">
+          <div class="toprow"><span class="eyebrow" id="b-track"></span><span class="tier" id="b-tier"></span></div>
+          <div class="bterm" id="b-name"></div>
+          <div class="bmeta" id="b-meta"></div>
+          <div class="thinrule"></div>
+          <div class="sectionlabel">&#x25B8; The Move</div>
+          <div class="approach" id="b-approach"></div>
+          <pre id="b-example"></pre>
+          <div class="mistakebox"><span class="mlabel">&#x25B8; The Mistake This Prevents</span><span class="mtext" id="b-mistake"></span></div>
+          <div class="whybox"><div class="whylabel">&#x25B8; Why It Works</div><div class="whylist" id="b-why"></div></div>
+          <div class="cx" id="b-cx"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="navbtn" onclick="prev(event)">&#x2039; Prev</button>
+    <div class="counter"><span id="pos">1</span> / <span id="total">1</span><small id="deckname">All</small></div>
+    <button class="navbtn" onclick="next(event)">Next &#x203A;</button>
+  </div>
+  <div class="util">
+    <button class="navbtn flipbtn" onclick="flip(event)">Flip &#x27F3;</button>
+    <button class="navbtn" onclick="shuffle(event)">Shuffle &#x2928;</button>
+    <button class="navbtn" onclick="skipOnly(event)">Most Skipped &#x2605;</button>
+    <button class="navbtn" onclick="reset(event)">Reset &#x21BA;</button>
+  </div>
+
+  <p class="foot">
+    <span class="kbd">&#x2190;</span>/<span class="kbd">&#x2192;</span> navigate &#x00B7; <span class="kbd">Space</span> flip &#x00B7; <span class="kbd">S</span> shuffle &#x00B7; <span class="kbd">C</span> most-skipped only<br>
+    9 cards &#x00B7; the framework applies to any prompt \u2014 practice it on your own systems, not just the example
+  </p>
+</div>
+
+<script>
+const CARDS = [
+{track:"Orientation",tier:"skip",num:"Why This Matters",name:"The 30-Second Trap",
+ hook:"Most candidates are cut off within the first minute \u2014 here's why.",
+ approach:"The default reflex when a prompt lands \u2014 grab a marker, draw API/cache/database boxes \u2014 is exactly what gets an interview derailed early, because it skips understanding the actual problem before proposing a solution. The fix isn't more technical knowledge; it's re-ordering when each kind of thinking happens.",
+ example:`WRONG ORDER                    RIGHT ORDER
+hear the prompt                1. Think in silence
+-> draw 3 boxes                2. Question, then hypothesize
+   (stopped ~30 sec in,        3. Draw the user journey
+    "what problem are          4. Architect the stack
+     you solving?")            5. Harden the stack
+                                6. Build for growth`,
+ mistake:"Treating \u201csystem design interview\u201d as synonymous with \u201cdraw the architecture\u201d \u2014 architecture is step 4 of 6, arrived at only after the problem itself is actually understood.",
+ why:["This card is the map for the rest of the deck","Every step below exists because skipping it is a specific, common failure mode"],
+ cx:["sets up: <b>every step below</b>"]},
+
+{track:"Steps 1\u20133 \u00B7 Before the Marker",tier:"skip",num:"Step 1",name:"Think in Silence",
+ hook:"The instinct to start talking immediately is the wrong instinct.",
+ approach:"When the prompt finishes, take a deliberate 30\u201360 second pause before saying anything \u2014 and think without narrating the thought process out loud as you go. Silence reads as composure and depth of thought to an interviewer; a reflexive stream of words reads as reacting, not thinking.",
+ example:`Interviewer: "Design a tool that scores candidate
+             interview answers."
+
+   [ ~30-60 seconds of quiet, visible thinking ]
+
+You: [now ready \u2014 open with clarifying questions, not
+      an answer]`,
+ mistake:"Filling the silence with a stream-of-consciousness ramble to \u201cprove you're engaged\u201d \u2014 this is the single most common reflex the framework is built to override.",
+ why:["Interviewers are evaluating how you think, not how fast you talk","Confidence looks like a pause, not a scramble"],
+ cx:["precedes: <b>Question Before You Draw</b>"]},
+
+{track:"Steps 1\u20133 \u00B7 Before the Marker",tier:"skip",num:"Step 2",name:"Question Before You Draw",
+ hook:"Ask a few sharp questions, then commit to an assumption \u2014 don't wait to be told.",
+ approach:"Ask a small number of clarifying questions \u2014 two or three at most \u2014 split into <strong>functional</strong> (what exactly is being built or processed) and <strong>scope</strong> (how much volume, how many users). Then state an explicit hypothesis about what you're building rather than waiting for the interviewer to spell it out.",
+ example:`Functional: what format is being processed? sync or
+           async? does output get stored or discarded?
+Scope:     roughly what volume \u2014 dozens, hundreds,
+           thousands of requests per day?
+
+Then commit: "I'll assume this is an internal tool
+handling on the order of a few hundred requests a day,
+processed synchronously, with results persisted."`,
+ mistake:"Either over-asking (stalling instead of deciding) or refusing to commit to any assumption at all \u2014 hedging is the one move that has no upside, since a wrong-but-specific assumption just gets corrected and you carry on.",
+ why:["A specific wrong assumption still earns credit for decisiveness","The interviewer corrects you once; you fold that correction in and keep moving \u2014 you don't lose ground for it"],
+ cx:["precedes: <b>Draw the User Journey</b>"]},
+
+{track:"Steps 1\u20133 \u00B7 Before the Marker",tier:"skip",num:"Step 3",name:"Draw the User Journey",
+ hook:"Sketch what happens to the user before you sketch what happens to the servers.",
+ approach:"Before any technology names go on the board, sketch the sequence of user-facing steps the system moves through end to end. This becomes the skeleton every later architecture decision hangs off of \u2014 and critically, it's what survives a mid-interview pivot without a full restart.",
+ example:`User submits input -> System processes it ->
+User receives a result -> System stores the result
+
+If the interviewer pivots scope mid-interview (e.g. "now
+make this an external, paid product"), duplicate this
+same skeleton and layer in only what the pivot adds
+(billing, quota, a UI) \u2014 instead of erasing the board.`,
+ mistake:"Jumping straight to boxes labeled with specific technologies \u2014 if a pivot lands later, that entire board has to be scrapped and redrawn from zero.",
+ why:["A journey-first skeleton makes pivots additive, not destructive","Shows you're solving the actual problem, not pattern-matching to a stack you've memorized"],
+ cx:["precedes: <b>Architect the Stack</b>"]},
+
+{track:"Step 4 \u00B7 The Whiteboard",tier:"build",num:"Step 4",name:"Architect the Stack",
+ hook:"Now, finally, the boxes with technology names in them.",
+ approach:"Translate the user journey into an actual system, organized into a few major buckets \u2014 front end, back end, data, infrastructure. Inside the back end, mirror the journey's own phases (checks before processing, the core processing itself, then output). Keep a visible \u201cparking lot\u201d for anything that depends on a product/stakeholder call \u2014 naming it shows thoroughness without derailing the interview into an unresolvable debate. Naming concrete technologies, even a scrappy starting choice versus a production-grade one, reads as more decisive than staying abstract.",
+ example:`Front End | Back End              | Data   | Infra
+          | pre-checks (auth,      | store  | compute
+          |   quota, cache)        |        | DNS
+          | core processing        |        |
+          | output / delivery      |        |
+
+Parking lot: billing model, quota policy
+  -> flag for product/TPM input, don't design it live`,
+ mistake:"Treating every open question as something you must resolve alone on the spot, instead of explicitly parking the ones that are really product decisions, not engineering ones.",
+ why:["Concrete technology choices signal decisiveness over hedging","A visible parking lot shows thoroughness without burning interview time on unanswerable questions"],
+ cx:["precedes: <b>Harden the Stack</b>"]},
+
+{track:"Steps 5\u20136 \u00B7 Refine",tier:"polish",num:"Step 5",name:"Harden the Stack",
+ hook:"The happy path works. Now make it trustworthy.",
+ approach:"With the happy-path architecture up, explicitly address what makes it reliable rather than just functional. Two recurring concerns: making any probabilistic component (an LLM call, a model with variable output) behave <strong>consistently</strong> so identical input doesn't produce wildly different results on repeat, and tracking the <strong>timeout budget</strong> across the entire request chain, since one slow downstream call can silently break an assumption made earlier in the design.",
+ example:`Happy path:  input -> model call -> raw output
+Hardened:    input -> model call -> normalization /
+                       consistency layer -> stable output
+
+Timeout budget: if the core call can take 60-120+ seconds,
+every upstream guarantee (session timeout, sync API limit)
+needs to be checked against that total, not assumed
+independently of it.`,
+ mistake:"Stopping at \u201cit works in the demo\u201d \u2014 a system that gives a different answer to the identical input twice, or silently times out because no one totaled the worst-case latency chain, isn't actually done.",
+ why:["This is the step that separates a working demo from a production-ready design","Shows systems thinking across the whole request path, not just the interesting component"],
+ cx:["precedes: <b>Build for Growth</b>"]},
+
+{track:"Steps 5\u20136 \u00B7 Refine",tier:"polish",num:"Step 6",name:"Build for Growth",
+ hook:"Design the seams likely to change \u2014 this isn't about raw scale.",
+ approach:"Design the parts of the system most likely to change so a future pivot doesn't force a rewrite \u2014 this is about <strong>flexibility</strong>, not provisioning for 10x traffic. Concretely: wrap a component likely to be swapped (a model provider, a vendor) behind an abstraction with separate staging and production paths, so switching it later doesn't mean re-architecting live. Similarly, break one long synchronous call into smaller, parallelizable or async pieces so new functionality can be added without breaking the timeout assumptions from Step 5.",
+ example:`Rigid:        core logic -> hardcoded to one provider,
+                             one synchronous call
+
+Growth-ready: core logic -> Provider Factory
+                              (staging + production)
+                              -> Provider A / B / C
+                           -> async-friendly, parallelizable
+                              sub-steps, not one big call`,
+ mistake:"Confusing \u201cbuild for growth\u201d with \u201cover-provision for scale\u201d \u2014 the actual ask is architectural flexibility at the seams likely to change, not raw capacity headroom.",
+ why:["Protects against the exact kind of pivot an interviewer is likely to introduce mid-answer","Signals senior-level judgment about which abstractions are worth the extra layer, and which aren't"],
+ cx:["closes the loop back to: <b>the user journey from Step 3</b>"]},
+
+{track:"Reference",tier:"build",num:"Worked Through",name:"All Six Steps, End to End",
+ hook:"How the framework strings together on one prompt \u2014 in outline, not verbatim.",
+ approach:"Applied to an illustrative prompt (an internal tool scoring candidates' interview answers): clarify scope (text vs. audio, sync vs. async, rough daily volume) and state an assumption; sketch the user journey (submit \u2192 system scores it \u2192 user sees feedback \u2192 result is stored); architect it into front end / back end / data / infra, with auth, quota, and caching as backend pre-checks ahead of the core scoring call; harden it by normalizing the model's output so repeat submissions score consistently, and by sizing the timeout budget around the scoring call's real latency; build for growth by wrapping the scoring call in a swappable provider layer with staging/production separation, anticipating a pivot like turning an internal tool into an externally sold product.",
+ example:`1. Silence -> think before speaking
+2. Clarify -> format? sync/async? rough volume?
+              -> assume, state it, move on
+3. Journey -> submit -> score -> feedback -> store
+4. Architect -> FE/BE/data/infra, park the business-model Qs
+5. Harden -> consistent scoring output + timeout budget
+6. Grow -> swappable provider layer, staging vs. prod`,
+ mistake:"Notice the answer never needed exact vendor names to be convincing \u2014 the structure and reasoning carry it, not the technology trivia.",
+ why:["This is the shape a strong answer takes end to end, on almost any prompt","Swap in one of your own real systems (a RAG pipeline, an agent orchestrator) as your practice example instead of this one \u2014 it'll be more convincing than a memorized template"],
+ cx:["ties together: <b>all 6 steps</b>"]},
+];
+
+/* ---- app ---- */
+const TRACKS = ["All", ...Array.from(new Set(CARDS.map(c=>c.track)))];
+let filter="All", deck=CARDS.slice(), idx=0;
+const $=id=>document.getElementById(id);
+const TIER_LABEL={skip:"Most Skipped",build:"The Whiteboard",polish:"Refine"};
+
+function buildFilters(){
+  const box=$("filters"); box.innerHTML="";
+  TRACKS.forEach(t=>{
+    const b=document.createElement("button");
+    b.className="chip"+(t===filter?" active":"");
+    b.textContent=t;
+    b.onclick=()=>{filter=t;applyFilter();};
+    box.appendChild(b);
+  });
+}
+function applyFilter(){
+  deck = filter==="All" ? CARDS.slice() : CARDS.filter(c=>c.track===filter);
+  idx=0; buildFilters(); render();
+}
+function render(){
+  const c=deck[idx];
+  $("card").classList.remove("flipped");
+  $("f-track").textContent=c.track;
+  $("b-track").textContent=c.track;
+  ["f","b"].forEach(p=>{
+    const el=$(p+"-tier");
+    el.textContent=TIER_LABEL[c.tier];
+    el.className="tier "+c.tier;
+  });
+  $("f-num").textContent=c.num;
+  $("f-name").textContent=c.name;
+  $("f-hook").textContent=c.hook;
+  $("b-name").textContent=c.num+" \u00B7 "+c.name;
+  $("b-meta").textContent=c.track;
+  $("b-approach").innerHTML=c.approach;
+  $("b-example").textContent=c.example;
+  $("b-mistake").textContent=c.mistake;
+  $("b-why").innerHTML=c.why.map(w=>`<div class="whyitem">${w}</div>`).join("");
+  $("b-cx").innerHTML=(c.cx||[]).map(x=>"<span>"+x+"</span>").join("");
+  $("pos").textContent=idx+1;
+  $("total").textContent=deck.length;
+  $("deckname").textContent=filter;
+  const bs=document.querySelector(".backscroll"); if(bs) bs.scrollTop=0;
+}
+function flip(e){if(e)e.stopPropagation();$("card").classList.toggle("flipped");}
+function next(e){if(e)e.stopPropagation();idx=(idx+1)%deck.length;render();}
+function prev(e){if(e)e.stopPropagation();idx=(idx-1+deck.length)%deck.length;render();}
+function shuffle(e){if(e)e.stopPropagation();for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}idx=0;render();}
+function skipOnly(e){if(e)e.stopPropagation();filter="All";deck=CARDS.filter(c=>c.tier==="skip");idx=0;buildFilters();$("deckname").textContent="Most Skipped";render();}
+function reset(e){if(e)e.stopPropagation();filter="All";applyFilter();}
+document.addEventListener("keydown",ev=>{
+  if(ev.key==="ArrowRight")next();
+  else if(ev.key==="ArrowLeft")prev();
+  else if(ev.key===" "){ev.preventDefault();flip();}
+  else if(ev.key.toLowerCase()==="s")shuffle();
+  else if(ev.key.toLowerCase()==="c")skipOnly();
+});
+buildFilters();render();
+</script>
+</body>
+</html>
